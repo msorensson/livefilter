@@ -30,6 +30,7 @@ function LiveFilter(el, opts) {
 
     self.opts = {
         usePushState: true,
+        additionalHeaders: {},
         triggers: {
             'change': 'input[type="radio"], input[type="checkbox"]'
         }
@@ -71,11 +72,15 @@ LiveFilter.prototype = {
     fetch: function(queryString) {
         var self = this;
 
+        var headers = {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        };
+
+        var newHeaders = Object.assign({}, headers, self.opts.additionalHeaders);
+
         fetch(self.opts.action + '?' + queryString, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            headers: newHeaders
         }).then(function(response) {
             return response.json();
         }).then(function(json) {
