@@ -217,17 +217,20 @@ LiveFilter.prototype = {
                 els = document.querySelectorAll(triggers[key]);
 
                 for (var i = 0; i < els.length; i++) {
-                    els[i].addEventListener(key, function() {
-                        var queryString = '?' + self.serializeForm();
-
-                        if (self.opts.pushState) {
-                            self.pushState(null, null, queryString, self.popState);
-                        } else {
-                            self.pushState(null, null, queryString);
-                        }
-                    });
+                    els[i].addEventListener(key, self.triggerUpdate);
                 }
             }
+        }
+    },
+
+    triggerUpdate: function() {
+        var self = this,
+            queryString = '?' + self.serializeForm();
+
+        if (self.opts.pushState) {
+            self.pushState(null, null, queryString, self.popState);
+        } else {
+            self.pushState(null, null, queryString);
         }
     },
 
