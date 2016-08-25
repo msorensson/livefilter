@@ -82,7 +82,11 @@ LiveFilter.prototype = {
         fetch(self.opts.action + '?' + queryString, {
             headers: newHeaders
         }).then(function(response) {
-            return response.json();
+            if (newHeaders.Accept === 'application/json') {
+                return response.json();
+            } else {
+                return response.text();
+            }
         }).then(function(json) {
             if (self.opts.afterFetch && typeof self.opts.afterFetch === 'function') {
                 self.opts.afterFetch.call(self, json);
