@@ -217,7 +217,7 @@ LiveFilter.prototype = {
                 els = document.querySelectorAll(triggers[key]);
 
                 for (var i = 0; i < els.length; i++) {
-                    els[i].addEventListener(key, self.triggerUpdate);
+                    els[i].addEventListener(key, self.triggerUpdate.bind(this));
                 }
             }
         }
