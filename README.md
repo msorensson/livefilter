@@ -23,6 +23,9 @@ var LiveFilter = require('livefilter');
 var form = document.querySelector('.my-form');
 
 new LiveFilter(form, {
+    beforeFetch: function() {
+        // Do stuff right before the fetch has responded
+    },
     afterFetch: function(data) {
         // Do stuff with fetched data.
     }
