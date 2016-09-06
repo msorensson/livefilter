@@ -79,6 +79,10 @@ LiveFilter.prototype = {
 
         var newHeaders = Object.assign({}, headers, self.opts.additionalHeaders);
 
+        if (self.opts.beforeFetch && typeof self.opts.beforeFetch === 'function') {
+            self.opts.beforeFetch.call(self);
+        }
+
         fetch(self.opts.action + '?' + queryString, {
             headers: newHeaders
         }).then(function(response) {
