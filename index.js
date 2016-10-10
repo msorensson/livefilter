@@ -33,7 +33,9 @@ function LiveFilter(el, opts) {
         additionalHeaders: {},
         triggers: {
             'change': 'input[type="radio"], input[type="checkbox"]'
-        }
+        },
+        beforeFetch: function() {},
+        afterFetch: function() {}
     };
 
     assign(self.opts, opts);
@@ -47,6 +49,10 @@ function LiveFilter(el, opts) {
 }
 
 LiveFilter.prototype = {
+    preventSubmit: function(e) {
+        e.preventDefault();
+    },
+
     pushState: function(data, title, queryString, cb) {
         var self = this;
 
@@ -79,9 +85,7 @@ LiveFilter.prototype = {
 
         var newHeaders = Object.assign({}, headers, self.opts.additionalHeaders);
 
-        if (self.opts.beforeFetch && typeof self.opts.beforeFetch === 'function') {
-            self.opts.beforeFetch.call(self);
-        }
+        self.opts.beforeFetch.call(self);
 
         fetch(self.opts.action + '?' + queryString, {
             headers: newHeaders
@@ -262,6 +266,8 @@ LiveFilter.prototype = {
                 });
             }
         }
+
+        self.el.addEventListener('submit', self.preventSubmit.bind(self));
     },
 
     redirect: function() {
