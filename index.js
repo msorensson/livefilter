@@ -35,7 +35,8 @@ function LiveFilter(el, opts) {
             'change': 'input[type="radio"], input[type="checkbox"]'
         },
         beforeFetch: function() {},
-        afterFetch: function() {}
+        afterFetch: function() {},
+        onUpdateUrl: function() {}
     };
 
     assign(self.opts, opts);
@@ -114,6 +115,8 @@ LiveFilter.prototype = {
         if (pop) {
             self.reRenderForm(data);
         }
+
+        self.opts.onUpdateUrl(data);
 
         self.fetch.call(self, q);
     },
