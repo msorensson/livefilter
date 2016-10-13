@@ -301,7 +301,10 @@ LiveFilter.prototype = {
     },
 
     initialize: function() {
-        var self = this;
+        var self = this,
+            url  = decodeURI(window.location.href),
+            q    = self.getQueryString(url),
+            data = self.serializeQueryString(q);
 
         // Redirect if necessary.
         self.redirect();
@@ -311,6 +314,7 @@ LiveFilter.prototype = {
             self.listenToHashChange();
         }
 
+        self.opts.onInit(data);
         self.addTriggers();
         self.addEventListeners();
     }
