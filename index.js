@@ -89,6 +89,7 @@ LiveFilter.prototype = {
         self.opts.beforeFetch.call(self);
 
         fetch(self.opts.action + '?' + queryString, {
+            credentials: 'include',
             headers: newHeaders
         }).then(function(response) {
             if (newHeaders.Accept === 'application/json') {
