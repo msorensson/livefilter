@@ -84,7 +84,7 @@ LiveFilter.prototype = {
             'X-Requested-With': 'XMLHttpRequest'
         };
 
-        var newHeaders = Object.assign({}, headers, self.opts.additionalHeaders);
+        var newHeaders = assign(headers, self.opts.additionalHeaders);
 
         self.opts.beforeFetch.call(self);
 
