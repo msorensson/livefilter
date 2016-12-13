@@ -36,7 +36,8 @@ function LiveFilter(el, opts) {
         },
         beforeFetch: function() {},
         afterFetch: function() {},
-        onUpdateUrl: function() {}
+        onUpdateUrl: function() {},
+        onInit: function() {}
     };
 
     assign(self.opts, opts);
