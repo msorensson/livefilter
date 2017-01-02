@@ -37,12 +37,12 @@ function LiveFilter(el, opts) {
         beforeFetch: function() {},
         afterFetch: function() {},
         onUpdateUrl: function() {},
-        onInit: function() {}
+        onInit: function() {},
+        action: self.el.getAttribute('action') || ''
     };
 
     assign(self.opts, opts);
 
-    self.opts.action = self.el.getAttribute('action');
     self.opts.pushState = (function() {
         return !!(window.history && history.pushState);
     })();
