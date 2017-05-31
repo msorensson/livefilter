@@ -28,6 +28,14 @@ new LiveFilter(form, {
     },
     afterFetch: function(data) {
         // Do stuff with fetched data.
-    }
+    },
+    onUpdateUrl: function() {
+        // Do stuff when url is updated but before data is fetched.
+    },
+    // A list of selectors or DOM elements that should be notified with event when a fetch is finished.
+    // Event to contains property data which holds the json response from the server.
+    // Event is called 'livefilterfetched'
+    subscribers: []
+
 });
 ```

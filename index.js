@@ -4,6 +4,26 @@ var assign = require('lodash/assign');
 require('es6-promise').polyfill();
 require('whatwg-fetch');
 
+var getEvent = function(name) {
+    var event;
+
+    try {
+        event = new CustomEvent(name);
+    } catch (e) {
+        event = document.createEvent('Event');
+        event.initEvent(name, true, true);
+    }
+
+    return event;
+};
+
+var isElement = function(o){
+  return (
+      typeof HTMLElement === 'object' ? o instanceof HTMLElement : //DOM2
+      o && typeof o === 'object' && o !== null && o.nodeType === 1 && typeof o.nodeName==='string'
+  );
+};
+
 if (!Date.now) {
     Date.now = function() {
         return new Date().getTime();
@@ -27,6 +47,7 @@ function LiveFilter(el, opts) {
     self.el = el;
     self.silent = false;
     self.hash = window.location.hash;
+    self.subscribers = [];
 
     self.opts = {
         usePushState: true,
@@ -38,6 +59,7 @@ function LiveFilter(el, opts) {
         afterFetch: function() {},
         onUpdateUrl: function() {},
         onInit: function() {},
+        subscribers: [],
         action: self.el.getAttribute('action') || ''
     };
 
@@ -99,8 +121,15 @@ LiveFilter.prototype = {
                 return response.text();
             }
         }).then(function(json) {
+            var event = getEvent('livefilterfetched');
+            event.data = json;
+
             if (self.opts.afterFetch && typeof self.opts.afterFetch === 'function') {
                 self.opts.afterFetch.call(self, json);
+            }
+
+            for (var i = 0; i < self.subscribers.length; i++) {
+                self.subscribers[i].dispatchEvent(event);
             }
         }).catch(function(err) {
             // @todo implement error handling
@@ -302,11 +331,32 @@ LiveFilter.prototype = {
         }
     },
 
+    setSubscribers: function() {
+        var self = this,
+            subscriber;
+
+        for (var i = 0; i < this.opts.subscribers.length; i++) {
+            subscriber = false;
+
+            if (typeof this.opts.subscribers[i] === 'string') {
+                subscriber = document.querySelector(this.opts.subscribers[i]);
+            } else if (isElement(this.opts.subscribers[i])) {
+                subscriber = this.opts.subscribers[i];
+            }
+
+            if (subscriber) {
+                self.subscribers.push(subscriber);
+            }
+        }
+    },
+
     initialize: function() {
         var self = this,
             url  = decodeURI(window.location.href),
             q    = self.getQueryString(url),
             data = self.serializeQueryString(q);
+
+        self.setSubscribers();
 
         // Redirect if necessary.
         self.redirect();
