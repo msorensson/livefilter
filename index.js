@@ -260,7 +260,7 @@ LiveFilter.prototype = {
 
         for (var key in triggers) {
             if (triggers.hasOwnProperty(key)) {
-                els = document.querySelectorAll(triggers[key]);
+                els = self.el.querySelectorAll(triggers[key]);
 
                 for (var i = 0; i < els.length; i++) {
                     els[i].addEventListener(key, self.triggerUpdate.bind(this));
