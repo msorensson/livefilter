@@ -109,7 +109,9 @@ LiveFilter.prototype = {
 
         var newHeaders = assign(headers, self.opts.additionalHeaders);
 
-        self.opts.beforeFetch.call(self);
+        if (self.opts.beforeFetch.call(self) === false) {
+            return;
+        }
 
         fetch(self.opts.action + '?' + queryString, {
             credentials: 'include',
