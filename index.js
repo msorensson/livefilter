@@ -1,6 +1,7 @@
 'use strict';
 var serialize = require('form-serialize');
 var assign = require('lodash/assign');
+var debounce = require('lodash/debounce');
 require('es6-promise').polyfill();
 require('whatwg-fetch');
 
@@ -262,10 +263,18 @@ LiveFilter.prototype = {
 
         for (var key in triggers) {
             if (triggers.hasOwnProperty(key)) {
-                els = self.el.querySelectorAll(triggers[key]);
+                if (typeof triggers[key] === 'string') {
+                    els = self.el.querySelectorAll(triggers[key]);
+                } else if (triggers[key].hasOwnProperty('selector')) {
+                    els = self.el.querySelectorAll(triggers[key].selector);
+                }
 
                 for (var i = 0; i < els.length; i++) {
-                    els[i].addEventListener(key, self.triggerUpdate.bind(this));
+                    if (triggers[key].hasOwnProperty('debounce') && triggers[key].debounce === true) {
+                        els[i].addEventListener(key, debounce(self.triggerUpdate.bind(this), 250));
+                    } else {
+                        els[i].addEventListener(key, self.triggerUpdate.bind(this));
+                    }
                 }
             }
         }
