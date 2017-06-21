@@ -157,32 +157,41 @@ LiveFilter.prototype = {
 
     reRenderForm: function(data) {
         var self = this,
-            radiosAndCheckboxes = self.el.querySelectorAll('input[type="checkbox"], input[type="radio"]'),
+            elements = self.el.querySelectorAll('input[type="checkbox"], input[type="radio"], input[type="search"], input[type="text"], input[type="tel"]'),
             event;
 
         var value, name;
 
         self.silent = true;
 
-        for (var i = 0; i < radiosAndCheckboxes.length; i++) {
-            value = radiosAndCheckboxes[i].value.replace(' ', '+');
-            name  = radiosAndCheckboxes[i].getAttribute('name').replace(' ', '+');
+        for (var i = 0; i < elements.length; i++) {
+            value = elements[i].value.replace(' ', '+');
+            name  = elements[i].getAttribute('name').replace(' ', '+');
+
+            if (elements[i].getAttribute('type') === 'search' ||
+                elements[i].getAttribute('type') === 'text' ||
+                elements[i].getAttribute('type') === 'tel') {
+
+                if (data[name]) {
+                    elements[i].value = data[name].replace(/\+/g, ' ');
+                }
+            }
 
             if (data[name] && data[name].indexOf(value) !== -1) {
-                if (!radiosAndCheckboxes[i].checked) {
-                    radiosAndCheckboxes[i].checked = true;
+                if (!elements[i].checked) {
+                    elements[i].checked = true;
 
                     event = document.createEvent('HTMLEvents');
                     event.initEvent('change', true, false);
-                    radiosAndCheckboxes[i].dispatchEvent(event);
+                    elements[i].dispatchEvent(event);
                 }
             } else {
-                if (radiosAndCheckboxes[i].checked) {
-                    radiosAndCheckboxes[i].checked = false;
+                if (elements[i].checked) {
+                    elements[i].checked = false;
 
                     event = document.createEvent('HTMLEvents');
                     event.initEvent('change', true, false);
-                    radiosAndCheckboxes[i].dispatchEvent(event);
+                    elements[i].dispatchEvent(event);
                 }
             }
         }
