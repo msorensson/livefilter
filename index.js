@@ -174,6 +174,8 @@ LiveFilter.prototype = {
 
                 if (data[name]) {
                     elements[i].value = data[name].replace(/\+/g, ' ');
+                } else {
+                    elements[i].value = '';
                 }
             }
 
