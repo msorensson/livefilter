@@ -39,9 +39,9 @@ new LiveFilter(form, {
     // or an object with mandatory property selector (query selector) and optional debounce set to true for
     // debouncing incoming events such as keyup.
     triggers: {
-        'change': 'input[type="radio"],
-        'keyup': {
-            selector: 'input[type="search"],
+        change: 'input[type="radio"]',
+        keyup: {
+            selector: 'input[type="search"]',
             debounce: true
         }
     }
