@@ -158,13 +158,14 @@ LiveFilter.prototype = {
     reRenderForm: function(data) {
         var self = this,
             elements = self.el.querySelectorAll('input[type="checkbox"], input[type="radio"], input[type="search"], input[type="text"], input[type="tel"]'),
+            selects = self.el.querySelectorAll('select'),
             event;
 
-        var value, name;
+        var value, name, i;
 
         self.silent = true;
 
-        for (var i = 0; i < elements.length; i++) {
+        for (i = 0; i < elements.length; i++) {
             value = elements[i].value.replace(' ', '+');
             name  = elements[i].getAttribute('name').replace(' ', '+');
 
@@ -195,6 +196,18 @@ LiveFilter.prototype = {
                     event.initEvent('change', true, false);
                     elements[i].dispatchEvent(event);
                 }
+            }
+        }
+
+        for (i = 0; i < selects.length; i++) {
+            value = selects[i].value.replace(' ', '+');
+            name  = selects[i].getAttribute('name').replace(' ', '+');
+
+            if (value !== data[name]) {
+                selects[i].value = data[name].replace(/\+/g, ' ');
+                event = document.createEvent('HTMLEvents');
+                event.initEvent('change', true, false);
+                selects[i].dispatchEvent(event);
             }
         }
 
