@@ -4,6 +4,7 @@
   "description": "Turns a form in to a live updating filter with routing",
   "main": "index.js",
   "scripts": {
+    "dev": "webpack-dev-server --progress",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Martin Sörensson",
@@ -13,5 +14,9 @@
     "form-serialize": "^0.7.1",
     "lodash": "^4.15.0",
     "whatwg-fetch": "2.0.1"
+  },
+  "devDependencies": {
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.9.7"
   }
 }

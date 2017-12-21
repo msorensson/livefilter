@@ -1,0 +1,39 @@
+<!doctype HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Livefilter</title>
+        <link rel="stylesheet" href="/style.css">
+    </head>
+    <body>
+        <h1>Livefilter</h1>
+
+        <div class="example">
+            <form class="livefilter" action="/response.json" method="GET">
+                <fieldset>
+                    <legend>Cars</legend>
+                    <input type="checkbox" name="car" value="Volvo" id="volvo">
+                    <label for="volvo">Volvo</label>
+                    <input type="checkbox" name="car" value="Saab" id="saab">
+                    <label for="saab">Saab</label>
+                    <input type="checkbox" name="car" value="Tesla" id="tesla">
+                    <label for="tesla">Tesla</label>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Year model</legend>
+
+                    <select name="year-model" id="year-model">
+                        <option value="2017">2017</option>
+                        <option value="2016">2016</option>
+                        <option value="2015">2015</option>
+                        <option value="2014">2014</option>
+                    </select>
+                </fieldset>
+
+            </form>
+        </div>
+
+        <script src="/script.js"></script>
+    </body>
+</html>
