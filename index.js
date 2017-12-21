@@ -203,8 +203,13 @@ LiveFilter.prototype = {
             value = selects[i].value.replace(' ', '+');
             name  = selects[i].getAttribute('name').replace(' ', '+');
 
-            if (value !== data[name]) {
+            if (data[name] && value !== data[name]) {
                 selects[i].value = data[name].replace(/\+/g, ' ');
+                event = document.createEvent('HTMLEvents');
+                event.initEvent('change', true, false);
+                selects[i].dispatchEvent(event);
+            } else if (value != '' && !data[name]) {
+                selects[i].value = '';
                 event = document.createEvent('HTMLEvents');
                 event.initEvent('change', true, false);
                 selects[i].dispatchEvent(event);
