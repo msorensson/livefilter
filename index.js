@@ -59,6 +59,7 @@ function LiveFilter(el, opts) {
         beforeFetch: function() {},
         afterFetch: function() {},
         onUpdateUrl: function() {},
+        intersectPopstate: false,
         onInit: function() {},
         subscribers: [],
         action: self.el.getAttribute('action') || ''
@@ -69,6 +70,8 @@ function LiveFilter(el, opts) {
     self.opts.pushState = (function() {
         return !!(window.history && history.pushState);
     })();
+
+    self.serializeForm = self.serializeForm;
 
     self.initialize();
 }
@@ -146,13 +149,30 @@ LiveFilter.prototype = {
             q    = self.getQueryString(url),
             data = self.serializeQueryString(q);
 
-        if (pop) {
-            self.reRenderForm(data);
+        if (self.opts.intersectPopstate) {
+            self.opts.onUpdateUrl.call(this, data, function() {
+                url  = decodeURI(window.location.href),
+                q    = self.getQueryString(url),
+                data = self.serializeQueryString(q);
+
+                if (pop) {
+                    self.reRenderForm(data);
+                }
+
+                self.fetch.call(self, q);
+            });
+        } else {
+            url  = decodeURI(window.location.href),
+            q    = self.getQueryString(url),
+            data = self.serializeQueryString(q);
+
+            if (pop) {
+                self.reRenderForm(data);
+            }
+
+            self.opts.onUpdateUrl(data);
+            self.fetch.call(self, q);
         }
-
-        self.opts.onUpdateUrl(data);
-
-        self.fetch.call(self, q);
     },
 
     reRenderForm: function(data) {
