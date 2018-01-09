@@ -1,6 +1,6 @@
 {
   "name": "livefilter",
-  "version": "2.8.1",
+  "version": "2.9.0",
   "description": "Turns a form in to a live updating filter with routing",
   "main": "index.js",
   "scripts": {
