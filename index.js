@@ -51,6 +51,7 @@ function LiveFilter(el, opts) {
     self.subscribers = [];
 
     self.opts = {
+        encodeURI: false,
         usePushState: true,
         additionalHeaders: {},
         triggers: {
@@ -117,6 +118,10 @@ LiveFilter.prototype = {
             return;
         }
 
+        if (self.opts.encodeURI) {
+            queryString = encodeURI(queryString);
+        }
+
         fetch(self.opts.action + '?' + queryString, {
             credentials: 'include',
             headers: newHeaders
@@ -150,6 +155,10 @@ LiveFilter.prototype = {
             data = self.serializeQueryString(q);
 
         if (self.opts.intersectPopstate) {
+            if (pop) {
+                self.reRenderForm(data);
+            }
+
             self.opts.onUpdateUrl.call(this, data, function() {
                 url  = decodeURI(window.location.href),
                 q    = self.getQueryString(url),
@@ -426,7 +435,7 @@ LiveFilter.prototype = {
             self.listenToHashChange();
         }
 
-        self.opts.onInit(data);
+        self.opts.onInit.call(this, data);
         self.addTriggers();
         self.addEventListeners();
     }
