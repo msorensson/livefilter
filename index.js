@@ -54,6 +54,7 @@ function LiveFilter(el, opts) {
         encodeURI: false,
         usePushState: true,
         additionalHeaders: {},
+        collatedUrl: false,
         triggers: {
             'change': 'input[type="radio"], input[type="checkbox"]'
         },
@@ -298,8 +299,26 @@ LiveFilter.prototype = {
     },
 
     serializeForm: function() {
-        var self = this;
-        return serialize(self.el);
+        var self = this,
+            serialized,
+            str = '';
+
+        if (self.opts.collatedUrl) {
+            serialized = serialize(self.el, {hash: true});
+            for (let i in serialized) {
+                if (Array.isArray(serialized[i])) {
+                    serialized[i] = serialized[i].join();
+                }
+
+                str += i + '=' + serialized[i] + '&';
+            }
+
+            str = str.substring(0, str.length - 1);
+        } else {
+            str = serialize(self.el);
+        }
+
+        return str;
     },
 
     listenToHashChange: function() {
