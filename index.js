@@ -305,7 +305,7 @@ LiveFilter.prototype = {
 
         if (self.opts.collatedUrl) {
             serialized = serialize(self.el, {hash: true});
-            for (let i in serialized) {
+            for (var i in serialized) {
                 if (Array.isArray(serialized[i])) {
                     serialized[i] = serialized[i].join();
                 }
