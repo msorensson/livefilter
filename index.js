@@ -1,8 +1,29 @@
 'use strict';
 var serialize = require('form-serialize');
 var assign = require('lodash/assign');
+var debounce = require('lodash/debounce');
 require('es6-promise').polyfill();
 require('whatwg-fetch');
+
+var getEvent = function(name) {
+    var event;
+
+    try {
+        event = new CustomEvent(name);
+    } catch (e) {
+        event = document.createEvent('Event');
+        event.initEvent(name, true, true);
+    }
+
+    return event;
+};
+
+var isElement = function(o){
+  return (
+      typeof HTMLElement === 'object' ? o instanceof HTMLElement : //DOM2
+      o && typeof o === 'object' && o !== null && o.nodeType === 1 && typeof o.nodeName==='string'
+  );
+};
 
 if (!Date.now) {
     Date.now = function() {
@@ -27,26 +48,41 @@ function LiveFilter(el, opts) {
     self.el = el;
     self.silent = false;
     self.hash = window.location.hash;
+    self.subscribers = [];
 
     self.opts = {
+        encodeURI: false,
         usePushState: true,
         additionalHeaders: {},
+        collatedUrl: false,
         triggers: {
             'change': 'input[type="radio"], input[type="checkbox"]'
-        }
+        },
+        beforeFetch: function() {},
+        afterFetch: function() {},
+        onUpdateUrl: function() {},
+        intersectPopstate: false,
+        onInit: function() {},
+        subscribers: [],
+        action: self.el.getAttribute('action') || ''
     };
 
     assign(self.opts, opts);
 
-    self.opts.action = self.el.getAttribute('action');
     self.opts.pushState = (function() {
         return !!(window.history && history.pushState);
     })();
+
+    self.serializeForm = self.serializeForm;
 
     self.initialize();
 }
 
 LiveFilter.prototype = {
+    preventSubmit: function(e) {
+        e.preventDefault();
+    },
+
     pushState: function(data, title, queryString, cb) {
         var self = this;
 
@@ -77,9 +113,18 @@ LiveFilter.prototype = {
             'X-Requested-With': 'XMLHttpRequest'
         };
 
-        var newHeaders = Object.assign({}, headers, self.opts.additionalHeaders);
+        var newHeaders = assign(headers, self.opts.additionalHeaders);
+
+        if (self.opts.beforeFetch.call(self) === false) {
+            return;
+        }
+
+        if (self.opts.encodeURI) {
+            queryString = encodeURI(queryString);
+        }
 
         fetch(self.opts.action + '?' + queryString, {
+            credentials: 'include',
             headers: newHeaders
         }).then(function(response) {
             if (newHeaders.Accept === 'application/json') {
@@ -88,8 +133,15 @@ LiveFilter.prototype = {
                 return response.text();
             }
         }).then(function(json) {
+            var event = getEvent('livefilterfetched');
+            event.data = json;
+
             if (self.opts.afterFetch && typeof self.opts.afterFetch === 'function') {
                 self.opts.afterFetch.call(self, json);
+            }
+
+            for (var i = 0; i < self.subscribers.length; i++) {
+                self.subscribers[i].dispatchEvent(event);
             }
         }).catch(function(err) {
             // @todo implement error handling
@@ -103,42 +155,94 @@ LiveFilter.prototype = {
             q    = self.getQueryString(url),
             data = self.serializeQueryString(q);
 
-        if (pop) {
-            self.reRenderForm(data);
-        }
+        if (self.opts.intersectPopstate) {
+            if (pop) {
+                self.reRenderForm(data);
+            }
 
-        self.fetch.call(self, q);
+            self.opts.onUpdateUrl.call(this, data, function() {
+                url  = decodeURI(window.location.href),
+                q    = self.getQueryString(url),
+                data = self.serializeQueryString(q);
+
+                if (pop) {
+                    self.reRenderForm(data);
+                }
+
+                self.fetch.call(self, q);
+            });
+        } else {
+            url  = decodeURI(window.location.href),
+            q    = self.getQueryString(url),
+            data = self.serializeQueryString(q);
+
+            if (pop) {
+                self.reRenderForm(data);
+            }
+
+            self.opts.onUpdateUrl(data);
+            self.fetch.call(self, q);
+        }
     },
 
     reRenderForm: function(data) {
         var self = this,
-            radiosAndCheckboxes = self.el.querySelectorAll('input[type="checkbox"], input[type="radio"]'),
+            elements = self.el.querySelectorAll('input[type="checkbox"], input[type="radio"], input[type="search"], input[type="text"], input[type="tel"]'),
+            selects = self.el.querySelectorAll('select'),
             event;
 
-        var value, name;
+        var value, name, i;
 
         self.silent = true;
 
-        for (var i = 0; i < radiosAndCheckboxes.length; i++) {
-            value = radiosAndCheckboxes[i].value.replace(' ', '+');
-            name  = radiosAndCheckboxes[i].getAttribute('name').replace(' ', '+');
+        for (i = 0; i < elements.length; i++) {
+            value = elements[i].value.replace(' ', '+');
+            name  = elements[i].getAttribute('name').replace(' ', '+');
+
+            if (elements[i].getAttribute('type') === 'search' ||
+                elements[i].getAttribute('type') === 'text' ||
+                elements[i].getAttribute('type') === 'tel') {
+
+                if (data[name]) {
+                    elements[i].value = data[name].replace(/\+/g, ' ');
+                } else {
+                    elements[i].value = '';
+                }
+            }
 
             if (data[name] && data[name].indexOf(value) !== -1) {
-                if (!radiosAndCheckboxes[i].checked) {
-                    radiosAndCheckboxes[i].checked = true;
+                if (!elements[i].checked) {
+                    elements[i].checked = true;
 
                     event = document.createEvent('HTMLEvents');
                     event.initEvent('change', true, false);
-                    radiosAndCheckboxes[i].dispatchEvent(event);
+                    elements[i].dispatchEvent(event);
                 }
             } else {
-                if (radiosAndCheckboxes[i].checked) {
-                    radiosAndCheckboxes[i].checked = false;
+                if (elements[i].checked) {
+                    elements[i].checked = false;
 
                     event = document.createEvent('HTMLEvents');
                     event.initEvent('change', true, false);
-                    radiosAndCheckboxes[i].dispatchEvent(event);
+                    elements[i].dispatchEvent(event);
                 }
+            }
+        }
+
+        for (i = 0; i < selects.length; i++) {
+            value = selects[i].value.replace(' ', '+');
+            name  = selects[i].getAttribute('name').replace(' ', '+');
+
+            if (data[name] && value !== data[name]) {
+                selects[i].value = data[name].replace(/\+/g, ' ');
+                event = document.createEvent('HTMLEvents');
+                event.initEvent('change', true, false);
+                selects[i].dispatchEvent(event);
+            } else if (value != '' && !data[name]) {
+                selects[i].value = '';
+                event = document.createEvent('HTMLEvents');
+                event.initEvent('change', true, false);
+                selects[i].dispatchEvent(event);
             }
         }
 
@@ -195,8 +299,26 @@ LiveFilter.prototype = {
     },
 
     serializeForm: function() {
-        var self = this;
-        return serialize(self.el);
+        var self = this,
+            serialized,
+            str = '';
+
+        if (self.opts.collatedUrl) {
+            serialized = serialize(self.el, {hash: true});
+            for (var i in serialized) {
+                if (Array.isArray(serialized[i])) {
+                    serialized[i] = serialized[i].join();
+                }
+
+                str += i + '=' + serialized[i] + '&';
+            }
+
+            str = str.substring(0, str.length - 1);
+        } else {
+            str = serialize(self.el);
+        }
+
+        return str;
     },
 
     listenToHashChange: function() {
@@ -218,10 +340,18 @@ LiveFilter.prototype = {
 
         for (var key in triggers) {
             if (triggers.hasOwnProperty(key)) {
-                els = document.querySelectorAll(triggers[key]);
+                if (typeof triggers[key] === 'string') {
+                    els = self.el.querySelectorAll(triggers[key]);
+                } else if (triggers[key].hasOwnProperty('selector')) {
+                    els = self.el.querySelectorAll(triggers[key].selector);
+                }
 
                 for (var i = 0; i < els.length; i++) {
-                    els[i].addEventListener(key, self.triggerUpdate.bind(this));
+                    if (triggers[key].hasOwnProperty('debounce') && triggers[key].debounce === true) {
+                        els[i].addEventListener(key, debounce(self.triggerUpdate.bind(this), 250));
+                    } else {
+                        els[i].addEventListener(key, self.triggerUpdate.bind(this));
+                    }
                 }
             }
         }
@@ -258,6 +388,8 @@ LiveFilter.prototype = {
                 });
             }
         }
+
+        self.el.addEventListener('submit', self.preventSubmit.bind(self));
     },
 
     redirect: function() {
@@ -287,8 +419,32 @@ LiveFilter.prototype = {
         }
     },
 
+    setSubscribers: function() {
+        var self = this,
+            subscriber;
+
+        for (var i = 0; i < this.opts.subscribers.length; i++) {
+            subscriber = false;
+
+            if (typeof this.opts.subscribers[i] === 'string') {
+                subscriber = document.querySelector(this.opts.subscribers[i]);
+            } else if (isElement(this.opts.subscribers[i])) {
+                subscriber = this.opts.subscribers[i];
+            }
+
+            if (subscriber) {
+                self.subscribers.push(subscriber);
+            }
+        }
+    },
+
     initialize: function() {
-        var self = this;
+        var self = this,
+            url  = decodeURI(window.location.href),
+            q    = self.getQueryString(url),
+            data = self.serializeQueryString(q);
+
+        self.setSubscribers();
 
         // Redirect if necessary.
         self.redirect();
@@ -298,6 +454,7 @@ LiveFilter.prototype = {
             self.listenToHashChange();
         }
 
+        self.opts.onInit.call(this, data);
         self.addTriggers();
         self.addEventListeners();
     }
