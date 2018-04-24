@@ -421,20 +421,20 @@ LiveFilter.prototype = {
 
     setSubscribers: function() {
         var self = this,
-            subscriber;
+            subscribers;
 
         for (var i = 0; i < this.opts.subscribers.length; i++) {
-            subscriber = false;
+            subscribers = [];
 
             if (typeof this.opts.subscribers[i] === 'string') {
-                subscriber = document.querySelectorAll(this.opts.subscribers[i]);
+                subscribers = document.querySelectorAll(this.opts.subscribers[i]);
             } else if (isElement(this.opts.subscribers[i])) {
-                subscriber = this.opts.subscribers[i];
+                subscribers.push(this.opts.subscribers[i]);
             }
 
-            if (subscriber) {
-                for (var j = 0; j < subscriber.length; j++) {
-                    self.subscribers.push(subscriber[j]);
+            if (subscribers.length) {
+                for (var j = 0; j < subscribers.length; j++) {
+                    self.subscribers.push(subscribers[j]);
                 }
             }
         }
