@@ -427,13 +427,15 @@ LiveFilter.prototype = {
             subscriber = false;
 
             if (typeof this.opts.subscribers[i] === 'string') {
-                subscriber = document.querySelector(this.opts.subscribers[i]);
+                subscriber = document.querySelectorAll(this.opts.subscribers[i]);
             } else if (isElement(this.opts.subscribers[i])) {
                 subscriber = this.opts.subscribers[i];
             }
 
             if (subscriber) {
-                self.subscribers.push(subscriber);
+                for (var j = 0; j < subscriber.length; j++) {
+                    self.subscribers.push(subscriber[j]);
+                }
             }
         }
     },
