@@ -187,7 +187,7 @@ LiveFilter.prototype = {
 
     reRenderForm: function(data) {
         var self = this,
-            elements = self.el.querySelectorAll('input[type="checkbox"], input[type="radio"], input[type="search"], input[type="text"], input[type="tel"]'),
+            elements = self.el.querySelectorAll('input[type="checkbox"], input[type="radio"], input[type="search"], input[type="text"], input[type="tel"], input[type="hidden"]'),
             selects = self.el.querySelectorAll('select'),
             event;
 
@@ -201,30 +201,39 @@ LiveFilter.prototype = {
 
             if (elements[i].getAttribute('type') === 'search' ||
                 elements[i].getAttribute('type') === 'text' ||
-                elements[i].getAttribute('type') === 'tel') {
+                elements[i].getAttribute('type') === 'tel' ||
+                elements[i].getAttribute('type') === 'hidden') {
 
                 if (data[name]) {
                     elements[i].value = data[name].replace(/\+/g, ' ');
                 } else {
                     elements[i].value = '';
                 }
+
+                event = document.createEvent('HTMLEvents');
+                event.initEvent('change', true, false);
+                elements[i].dispatchEvent(event);
             }
 
-            if (data[name] && data[name].indexOf(value) !== -1) {
-                if (!elements[i].checked) {
-                    elements[i].checked = true;
+            if (elements[i].getAttribute('type') === 'radio' ||
+                elements[i].getAttribute('type') === 'checkbox') {
 
-                    event = document.createEvent('HTMLEvents');
-                    event.initEvent('change', true, false);
-                    elements[i].dispatchEvent(event);
-                }
-            } else {
-                if (elements[i].checked) {
-                    elements[i].checked = false;
+                if (data[name] && data[name].indexOf(value) !== -1) {
+                    if (!elements[i].checked) {
+                        elements[i].checked = true;
 
-                    event = document.createEvent('HTMLEvents');
-                    event.initEvent('change', true, false);
-                    elements[i].dispatchEvent(event);
+                        event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', true, false);
+                        elements[i].dispatchEvent(event);
+                    }
+                } else {
+                    if (elements[i].checked) {
+                        elements[i].checked = false;
+
+                        event = document.createEvent('HTMLEvents');
+                        event.initEvent('change', true, false);
+                        elements[i].dispatchEvent(event);
+                    }
                 }
             }
         }
