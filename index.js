@@ -197,7 +197,10 @@ LiveFilter.prototype = {
 
         for (i = 0; i < elements.length; i++) {
             value = elements[i].value.replace(' ', '+');
-            name  = elements[i].getAttribute('name').replace(' ', '+');
+            name  = elements[i].getAttribute('name') || '';
+            name = name.replace(' ', '+');
+
+            if (!name) {continue;}
 
             if (elements[i].getAttribute('type') === 'search' ||
                 elements[i].getAttribute('type') === 'text' ||
