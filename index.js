@@ -367,6 +367,8 @@ LiveFilter.prototype = {
                 }
             }
         }
+
+        self.el.addEventListener('submit', self.triggerUpdate.bind(this));
     },
 
     triggerUpdate: function() {
