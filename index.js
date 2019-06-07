@@ -64,7 +64,8 @@ function LiveFilter(el, opts) {
         intersectPopstate: false,
         onInit: function() {},
         subscribers: [],
-        action: self.el.getAttribute('action') || ''
+        action: self.el.getAttribute('action') || '',
+        preventSubmit: true
     };
 
     assign(self.opts, opts);
@@ -403,7 +404,9 @@ LiveFilter.prototype = {
             }
         }
 
-        self.el.addEventListener('submit', self.preventSubmit.bind(self));
+        if (self.opts.preventSubmit) {
+            self.el.addEventListener('submit', self.preventSubmit.bind(self));
+        }
     },
 
     redirect: function() {
